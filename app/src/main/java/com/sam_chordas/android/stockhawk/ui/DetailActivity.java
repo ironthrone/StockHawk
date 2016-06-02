@@ -1,10 +1,13 @@
 package com.sam_chordas.android.stockhawk.ui;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.os.Bundle;
 import android.widget.Toast;
 
 import com.sam_chordas.android.stockhawk.R;
+import com.sam_chordas.android.stockhawk.data.QuoteProvider;
+import com.sam_chordas.android.stockhawk.data.StockHistoryColumn;
 import com.sam_chordas.android.stockhawk.widget.LineGraph;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.OkHttpClient;
@@ -47,7 +50,6 @@ public class DetailActivity extends Activity {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Request request, IOException e) {
-//                getContentResolver()
             }
 
             @Override
@@ -98,19 +100,22 @@ public class DetailActivity extends Activity {
                         JSONObject root_Json = new JSONObject(json);
 
                         JSONArray query_Array = root_Json.getJSONArray("query");
+                        List<ContentValues> cvs = new ArrayList<>();
                         for (int i = 0; i < query_Array.length(); i++) {
                             Stock stock = new Stock();
                             JSONObject object = query_Array.getJSONObject(i);
-                            stock.Symbol = object.getString("Symbol");
-                            stock.Date = object.getString("Date");
-                            stock.Open = object.getString("Open");
-                            stock.High = object.getString("High");
-                            stock.Low = object.getString("Low");
-                            stock.Close = object.getString("Close");
-                            stock.Volume = object.getString("Volume");
-                            stock.Adj_Close = object.getString("Adj_Close");
-                            stocks.add(stock);
+                            ContentValues cv = new ContentValues();
+                            cv.put(StockHistoryColumn.SYMBOL,object.getString("Symbol"));
+                            cv.put(StockHistoryColumn.DATE,object.getString("Date"));
+                            cv.put(StockHistoryColumn.OPEN,object.getString("Open"));
+                            cv.put(StockHistoryColumn.HIGH,object.getString("High"));
+                            cv.put(StockHistoryColumn.LOW,object.getString("Low"));
+                            cv.put(StockHistoryColumn.CLOSE,object.getString("Close"));
+                            cv.put(StockHistoryColumn.VOLUME,object.getString("Volume"));
+                            cv.put(StockHistoryColumn.ADJ_CLOSE,object.getString("Adj_Close"));
+                            cvs.add(cv);
                         }
+                        getContentResolver().bulkInsert(QuoteProvider.StockHistory.CONTENT_URI,cvs.toArray(new ContentValues[]{}));
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }

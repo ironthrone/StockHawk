@@ -1,6 +1,7 @@
 package com.sam_chordas.android.stockhawk.data;
 
 import android.net.Uri;
+
 import net.simonvt.schematic.annotation.ContentProvider;
 import net.simonvt.schematic.annotation.ContentUri;
 import net.simonvt.schematic.annotation.InexactContentUri;
@@ -17,6 +18,7 @@ public class QuoteProvider {
 
   interface Path{
     String QUOTES = "quotes";
+    String STOCKHISTORY = "stockhistory";
   }
 
   private static Uri buildUri(String... paths){
@@ -45,5 +47,11 @@ public class QuoteProvider {
     public static Uri withSymbol(String symbol){
       return buildUri(Path.QUOTES, symbol);
     }
+  }
+
+  @TableEndpoint(table = QuoteDatabase.STOCKHISTORY)
+  public static class StockHistory{
+    @ContentUri(path = Path.STOCKHISTORY,type = "")
+    public static Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().path(Path.STOCKHISTORY).build();
   }
 }
