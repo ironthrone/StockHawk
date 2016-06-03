@@ -2,7 +2,9 @@ package com.sam_chordas.android.stockhawk.ui;
 
 import android.app.Activity;
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.view.Window;
 import android.widget.Toast;
 
 import com.sam_chordas.android.stockhawk.R;
@@ -21,9 +23,12 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 public class DetailActivity extends Activity {
@@ -32,10 +37,12 @@ public class DetailActivity extends Activity {
     private String mSymbol;
     private OkHttpClient client = new OkHttpClient();
     private LineGraph mLineGraph;
+                            private SimpleDateFormat mFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_detail);
 
         mSymbol = getIntent().getStringExtra(SYMBOL);
@@ -44,8 +51,29 @@ public class DetailActivity extends Activity {
     }
 
     private void getData() {
+        String startDate;
+        Cursor cursor = getContentResolver().query(QuoteProvider.StockHistory.CONTENT_URI,
+                new String[]{StockHistoryColumn.CLOSE,StockHistoryColumn.DATE},
+                StockHistoryColumn.SYMBOL + " = ?",
+                new String[]{mSymbol},
+                StockHistoryColumn.DATE + " asc");
+        if(cursor != null && cursor.moveToFirst()){
+            cursor.moveToLast();
+            long lastTime = cursor.getLong(cursor.getColumnIndex(StockHistoryColumn.DATE));
+            if(lastTime == getStartOfToday()){
+                startDate = "";
+            }else {
+                startDate = mFormat.format(new Date(lastTime));
+            }
+
+        }else {
+            startDate = getStartTime();
+        }
+        if(startDate.equals("")){
+            return;
+        }
         Request request = new Request.Builder()
-                .url(buildUrl(mSymbol,getStartTime()))
+                .url(buildUrl(mSymbol,startDate))
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
@@ -65,6 +93,15 @@ public class DetailActivity extends Activity {
     }
 
 
+    private long getStartOfToday(){
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(Calendar.HOUR_OF_DAY,0);
+                calendar.set(Calendar.MINUTE,0);
+                calendar.set(Calendar.SECOND,0);
+                calendar.set(Calendar.MILLISECOND,0);
+                return calendar.getTime().getTime();
+
+    }
     /*
     {
  "query": {
@@ -102,11 +139,11 @@ public class DetailActivity extends Activity {
                         JSONArray query_Array = root_Json.getJSONArray("query");
                         List<ContentValues> cvs = new ArrayList<>();
                         for (int i = 0; i < query_Array.length(); i++) {
-                            Stock stock = new Stock();
                             JSONObject object = query_Array.getJSONObject(i);
                             ContentValues cv = new ContentValues();
                             cv.put(StockHistoryColumn.SYMBOL,object.getString("Symbol"));
-                            cv.put(StockHistoryColumn.DATE,object.getString("Date"));
+                            long date = mFormat.parse(object.getString("Date")).getTime();
+                            cv.put(StockHistoryColumn.DATE,date);
                             cv.put(StockHistoryColumn.OPEN,object.getString("Open"));
                             cv.put(StockHistoryColumn.HIGH,object.getString("High"));
                             cv.put(StockHistoryColumn.LOW,object.getString("Low"));
@@ -117,6 +154,8 @@ public class DetailActivity extends Activity {
                         }
                         getContentResolver().bulkInsert(QuoteProvider.StockHistory.CONTENT_URI,cvs.toArray(new ContentValues[]{}));
                     } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (ParseException e) {
                         e.printStackTrace();
                     }
 
@@ -132,14 +171,14 @@ public class DetailActivity extends Activity {
 
     /*
     https://query.yahooapis.com/v1/public/yql?
-    q=select%20*%20from%20yahoo.finance.historicaldata%20where%20symbol%20%3D%20%22YHOO%22%20and%20startDate%20%3D%20%222016-04-30%22%20and%20endDate%20%3D%20%222016-05-31%22&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=
+    q=select%20*%20from%20yahoo.finance.historicaldata%20where%20symbol%20%3D%20%22YHOO%22%20and%20startDate%20%3D%20%222016-04-30%22%20and%20endDate%20%3D%20%222016-05-31%22&mFormat=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=
     */
     private String buildUrl(String symbol,String startDate){
         StringBuilder sb = new StringBuilder();
         try {
             sb.append("https://query.yahooapis.com/v1/public/yql?q=");
-            sb.append(URLEncoder.encode("select * from yahoo.finance.historicaldata where symbol = \"" + symbol +"\" and startDate = \"" + startDate +"\" and endDate = \"2016-05-31\"","UTF-8"));
-            sb.append("&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=");
+            sb .append(URLEncoder.encode("select * from yahoo.finance.historicaldata where symbol = \"" + symbol +"\" and startDate = \"" + formatDate(new Date()) +"\" and endDate = \"2016-05-31\"","UTF-8"));
+            sb.append("&mFormat=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -147,11 +186,18 @@ public class DetailActivity extends Activity {
     }
 
     private String getStartTime(){
-        Date date = new Date();
-        long current = date.getTime();
-        long before90Days  = current - 90 * 24 * 60 * 60 * 1000;
-        Date before90Date = new Date(before90Days);
+        Calendar calendar = new GregorianCalendar();
+        calendar.add(Calendar.DAY_OF_MONTH,-90);
+        Date before90Date = calendar.getTime();
+//        long current = date.getTime();
+//        long nintyDays =  90 * 24 * 60 * 60 * 1000L;
+//        long before90Days  = current - nintyDays;
+//        Date before90Date = new Date(before90Days);
+        return formatDate(before90Date);
+    }
+
+    private String formatDate(Date date){
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-        return format.format(before90Date);
+        return format.format(date);
     }
 }
