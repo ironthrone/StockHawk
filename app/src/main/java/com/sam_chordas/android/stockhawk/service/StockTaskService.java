@@ -101,7 +101,7 @@ public class StockTaskService extends GcmTaskService{
       }
     }
     // finalize the URL for the API query.
-    urlStringBuilder.append("&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables."
+    urlStringBuilder.append("&format=json&env=store%3A%2F%2Fdatatables."
         + "org%2Falltableswithkeys&callback=");
 
     String urlString;
