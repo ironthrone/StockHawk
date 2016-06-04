@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.Window;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sam_chordas.android.stockhawk.R;
@@ -27,17 +28,34 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class DetailActivity extends Activity {
 
     public static final String SYMBOL = "symbol";
+    public static final String BIT_PRICE = "bitPrice";
     private String mSymbol;
     private OkHttpClient client = new OkHttpClient();
-    private LineGraph mLineGraph;
+    @BindView(R.id.price_graph) LineGraph mLineGraph;
+    @BindView(R.id.highest_price)
+     TextView mHighest_TV;
+    @BindView(R.id.lowest_price)
+     TextView mLowest_TV;
+    @BindView(R.id.average_price)
+     TextView mAverage_TV;
+    @BindView(R.id.symbol)
+     TextView mSymbol_TV;
+    @BindView(R.id.price_now)
+     TextView mPriceNow_TV;
                             private SimpleDateFormat mFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private double mBitPrice;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,26 +63,35 @@ public class DetailActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_detail);
 
-        mSymbol = getIntent().getStringExtra(SYMBOL);
-        mLineGraph = (LineGraph) findViewById(R.id.price_graph);
-        getData();
+        ButterKnife.bind(this);
+
+
+        initToolbar();
+        getNetData();
     }
 
-    private void getData() {
+    private void initToolbar() {
+        mSymbol = getIntent().getStringExtra(SYMBOL);
+        mBitPrice = getIntent().getDoubleExtra(BIT_PRICE,0);
+        mSymbol_TV.setText(mSymbol);
+        mPriceNow_TV.setText(mBitPrice + "");
+    }
+
+    private void getNetData() {
         String startDate;
         Cursor cursor = getContentResolver().query(QuoteProvider.StockHistory.CONTENT_URI,
-                new String[]{StockHistoryColumn.CLOSE,StockHistoryColumn.DATE},
+                new String[]{StockHistoryColumn.DATE},
                 StockHistoryColumn.SYMBOL + " = ?",
                 new String[]{mSymbol},
-                StockHistoryColumn.DATE + " asc");
+                StockHistoryColumn.DATE + " desc");
         if(cursor != null && cursor.moveToFirst()){
-            cursor.moveToLast();
             long lastTime = cursor.getLong(cursor.getColumnIndex(StockHistoryColumn.DATE));
             if(lastTime == getStartOfToday()){
                 startDate = "";
             }else {
                 startDate = mFormat.format(new Date(lastTime));
             }
+        cursor.close();
 
         }else {
             startDate = getStartTime();
@@ -86,7 +113,7 @@ public class DetailActivity extends Activity {
                     Toast.makeText(DetailActivity.this, response.message(), Toast.LENGTH_SHORT).show();
                 return;
                 }
-                parseJson(response.body().string());
+                store(response.body().string());
                 showStock();
             }
         });
@@ -121,22 +148,12 @@ public class DetailActivity extends Activity {
      "Adj_Close": "37.82"
     },
      */
-    class Stock{
-        public String Symbol;
-                public String Date;
-                public String Open;
-                public String High;
-        public String  Low;
-        public String  Close;
-        public String Volume;
-        public String Adj_Close;
-    }
-    private List<Stock> stocks = new ArrayList<>();
-    private void parseJson(String json){
+
+    private void store(String json){
                     try {
                         JSONObject root_Json = new JSONObject(json);
 
-                        JSONArray query_Array = root_Json.getJSONArray("query");
+                        JSONArray query_Array = root_Json.getJSONObject("query").getJSONObject("results").getJSONArray("quote");
                         List<ContentValues> cvs = new ArrayList<>();
                         for (int i = 0; i < query_Array.length(); i++) {
                             JSONObject object = query_Array.getJSONObject(i);
@@ -162,11 +179,46 @@ public class DetailActivity extends Activity {
     }
 
     private void showStock(){
-        List<Double> prices = new ArrayList<>();
-        for(Stock stock:stocks){
-            prices.add(Double.parseDouble(stock.Close));
+        Cursor cursor = getContentResolver().query(QuoteProvider.StockHistory.CONTENT_URI,
+                new String[]{StockHistoryColumn.CLOSE,StockHistoryColumn.DATE},
+                StockHistoryColumn.SYMBOL + " = ?",
+                new String[]{mSymbol},
+                StockHistoryColumn.DATE + " asc");
+        if(cursor == null) return;
+        final List<Double> prices = new ArrayList<>();
+        while (cursor.moveToNext()){
+            prices.add(cursor.getDouble(cursor.getColumnIndex(StockHistoryColumn.CLOSE)));
         }
+        cursor.close();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
         mLineGraph.setDatas(prices);
+                mHighest_TV.setText(String.format("%.2f",getHighestPrice(prices)));
+                mLowest_TV.setText(String.format("%.2f",getLowestPrice(prices)));
+                mAverage_TV.setText(String.format("%.2f",getAveragePrice(prices)));
+
+            }
+        });
+    }
+
+    private double getHighestPrice(List<Double> list){
+        Collections.sort(list,Collections.<Double>reverseOrder());
+        return list.get(0);
+    }
+
+    private double getLowestPrice(List<Double> list){
+        Collections.sort(list);
+        return list.get(0);
+    }
+
+    private double getAveragePrice(List<Double> list){
+        int num = list.size();
+        double total = 0;
+        for (Double dou : list) {
+            total += dou;
+        }
+        return total/num;
     }
 
     /*
@@ -177,8 +229,8 @@ public class DetailActivity extends Activity {
         StringBuilder sb = new StringBuilder();
         try {
             sb.append("https://query.yahooapis.com/v1/public/yql?q=");
-            sb .append(URLEncoder.encode("select * from yahoo.finance.historicaldata where symbol = \"" + symbol +"\" and startDate = \"" + formatDate(new Date()) +"\" and endDate = \"2016-05-31\"","UTF-8"));
-            sb.append("&mFormat=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=");
+            sb .append(URLEncoder.encode("select * from yahoo.finance.historicaldata where symbol = \"" + symbol +"\" and startDate = \"" + startDate + "\" and endDate = \"" + formatDate(new Date()) + "\"","UTF-8"));
+            sb.append("&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }

@@ -89,8 +89,11 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                 Cursor cursor = mCursorAdapter.getCursor();
                 cursor.moveToPosition(position);
                 String symbol = cursor.getString(cursor.getColumnIndex(QuoteColumns.SYMBOL));
+                double bitPrice = cursor.getDouble(cursor.getColumnIndex(QuoteColumns.BIDPRICE));
                 Intent intent = new Intent(MyStocksActivity.this,DetailActivity.class);
                 intent.putExtra(DetailActivity.SYMBOL,symbol);
+                intent.putExtra(DetailActivity.BIT_PRICE,bitPrice);
+
                 startActivity(intent);
               }
             }));

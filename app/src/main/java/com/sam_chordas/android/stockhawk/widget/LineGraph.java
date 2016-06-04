@@ -5,8 +5,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.View;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -17,6 +19,8 @@ import java.util.List;
 public class LineGraph extends View {
 
     private Paint mPaint;
+        DecimalFormat mFormat = new DecimalFormat("#.00");
+    private double leftWidth;
 
     public LineGraph(Context context) {
         super(context);
@@ -35,6 +39,7 @@ public class LineGraph extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        leftWidth = getWidth()/6;
         drawBorder(canvas);
         drawDividingLine(canvas);
         drawPriceIndicator(canvas);
@@ -42,9 +47,11 @@ public class LineGraph extends View {
     }
 
     private void drawBorder(Canvas canvas) {
-        mPaint.setColor(Color.WHITE);
+        mPaint.setColor(Color.BLACK);
+        int paintWidth = 1;
+        mPaint.setStrokeWidth(paintWidth);
         canvas.drawLine(0,0,0,getHeight(),mPaint);
-        canvas.drawLine(0,getHeight(),getWidth(),getHeight(),mPaint);
+        canvas.drawLine(0,getHeight()-paintWidth,getWidth(),getHeight()-paintWidth,mPaint);
         canvas.drawLine(getWidth(),getWidth(),getWidth(),0,mPaint);
         canvas.drawLine(getWidth(),0,0,0,mPaint);
     }
@@ -62,7 +69,6 @@ public class LineGraph extends View {
         }
     }
 
-//    private static final int TOTAL_TIME = 4 * 60 * 1000 * 1000;
     private  int POINT_NUM = 10;
     private float toX(int position){
          float result = getWidth()*position/POINT_NUM;
@@ -84,19 +90,20 @@ public class LineGraph extends View {
 
     private void drawPriceIndicator(Canvas canvas) {
         mPaint.setColor(Color.RED);
-        mPaint.setTextSize(48);
-        double part = (mDeviation)/2;
+        float textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,14,getResources().getDisplayMetrics());
+        mPaint.setTextSize(textSize);
         float part2 = getHeight()/4;
-        canvas.drawText(mMax + "",0,0,mPaint);
-        canvas.drawText((mMax + mMiddlePrice)/2 + "",0, part2,mPaint);
-        canvas.drawText(mMiddlePrice + "",0, 2 * part2,mPaint);
-        canvas.drawText((mMiddlePrice + mMin)/2 + "",0,3 * part2,mPaint);
-        canvas.drawText(mMin + "",0,getHeight(),mPaint);
+        canvas.drawText(mFormat.format(mMax),0,0 + textSize,mPaint);
+        canvas.drawText(mFormat.format((mMax + mMiddlePrice)/2),0, part2,mPaint);
+        canvas.drawText(mFormat.format(mMiddlePrice),0, 2 * part2,mPaint);
+        canvas.drawText(mFormat.format((mMiddlePrice + mMin)/2),0,3 * part2,mPaint);
+        canvas.drawText(mFormat.format(mMin),0,getHeight(),mPaint);
     }
 
     private void drawDividingLine(Canvas canvas) {
         float part = getHeight()/4;
-        mPaint.setColor(Color.RED);
+        mPaint.setColor(Color.BLACK);
+        mPaint.setStrokeWidth(0);
         canvas.drawLine(0,part,getWidth(),part,mPaint);
         canvas.drawLine(0,2 * part,getWidth(),2 * part,mPaint);
         canvas.drawLine(0,3 * part,getWidth(),3 * part,mPaint);
@@ -106,15 +113,6 @@ public class LineGraph extends View {
     private double mMax = 0;
     private double mMin = 0;
 
-
-
-//    public void addData(Data data){
-//            mPoints.add(data);
-//        mMax = data.price > mMax ? data.price : mMax;
-//        mMin = data.price < mMin ? data.price : mMin;
-//        mDeviation = mMax - mMiddlePrice;
-//        setDeviation(mMax,mMin);
-//    }
 
     private void setDeviation(double max, double min){
         mDeviation = Math.max(Math.abs(mMax - mMiddlePrice),Math.abs(mMin - mMiddlePrice));
@@ -136,6 +134,7 @@ public class LineGraph extends View {
         mMax = temp.get(temp.size() - 1);
         mMiddlePrice = (mMax + mMin )/2;
         setDeviation(mMax,mMin);
+        invalidate();
     }
 
 
