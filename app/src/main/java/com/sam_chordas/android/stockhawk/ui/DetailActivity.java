@@ -11,7 +11,6 @@ import android.widget.Toast;
 import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.data.QuoteProvider;
 import com.sam_chordas.android.stockhawk.data.StockHistoryColumn;
-import com.sam_chordas.android.stockhawk.widget.LineGraph;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
