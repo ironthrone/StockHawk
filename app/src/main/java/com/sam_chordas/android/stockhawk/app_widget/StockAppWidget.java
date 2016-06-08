@@ -21,8 +21,6 @@ public class StockAppWidget extends AppWidgetProvider {
         // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.stock_app_widget);
         Intent remoteIntent = new Intent(context,StockWidgetService.class);
-        remoteIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        remoteIntent.setData(Uri.parse(remoteIntent.toUri(Intent.URI_INTENT_SCHEME)));
         views.setRemoteAdapter(R.id.collection,remoteIntent);
         views.setEmptyView(R.id.collection,R.id.empty);
 
