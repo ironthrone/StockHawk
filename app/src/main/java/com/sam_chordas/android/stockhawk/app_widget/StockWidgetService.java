@@ -57,16 +57,16 @@ public class StockWidgetService extends RemoteViewsService {
         @Override
         public RemoteViews getViewAt(int position) {
             mCursor.moveToPosition(position);
-            RemoteViews rv = new RemoteViews(mContext.getPackageName(),R.id.stock_item);
+            RemoteViews rv = new RemoteViews(mContext.getPackageName(),R.layout.item_stock_app_widget);
             rv.setTextViewText(R.id.symbol,mCursor.getString(mCursor.getColumnIndex(QuoteColumns.SYMBOL)));
             rv.setTextViewText(R.id.bid_price,mCursor.getString(mCursor.getColumnIndex(QuoteColumns.BIDPRICE)));
             rv.setTextViewText(R.id.percent_changed,mCursor.getString(mCursor.getColumnIndex(QuoteColumns.PERCENT_CHANGE)));
-//            if(mCursor.getInt(mCursor.getColumnIndex(QuoteColumns.ISUP)) == 1){
-//                rv.setInt(R.id.percent_changed,"setBackgroundColor",mContext.getResources().getColor(R.color.material_red_700));
-//            }else {
-//                rv.setInt(R.id.percent_changed,"setBackgroundColor",mContext.getResources().getColor(R.color.material_green_700));
-//
-//            }
+            if(mCursor.getInt(mCursor.getColumnIndex(QuoteColumns.ISUP)) == 1){
+                rv.setInt(R.id.percent_changed,"setBackgroundColor",mContext.getResources().getColor(R.color.material_red_700));
+            }else {
+                rv.setInt(R.id.percent_changed,"setBackgroundColor",mContext.getResources().getColor(R.color.material_green_700));
+
+            }
             return rv;
         }
 
@@ -87,7 +87,7 @@ public class StockWidgetService extends RemoteViewsService {
 
         @Override
         public boolean hasStableIds() {
-            return false;
+            return true;
         }
     }
 }

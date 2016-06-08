@@ -5,34 +5,36 @@
     android:id="@+id/stock_item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginLeft="4dp"
-    android:layout_marginRight="4dp"
     android:gravity="center_vertical"
+    android:padding="8dp"
     android:orientation="horizontal">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Medium Text"
+        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+        tools:text="Medium Text"
         android:id="@+id/symbol" />
 
-    <View
+    <TextView
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="match_parent"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        tools:text="Small Text"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         android:layout_marginRight="8dp"
-        android:id="@+id/bit_price"/>
+        tools:text="Small Text"
+        android:id="@+id/bid_price"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Small Text"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        tools:text="Small Text"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
+        android:background="@drawable/percent_change_pill"
         android:id="@+id/percent_changed"/>
 </LinearLayout>
