@@ -1,10 +1,18 @@
 package com.sam_chordas.android.stockhawk.data;
 
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.net.Uri;
+
+import com.sam_chordas.android.stockhawk.R;
+import com.sam_chordas.android.stockhawk.TheApplication;
+import com.sam_chordas.android.stockhawk.app_widget.StockAppWidgetProvider;
 
 import net.simonvt.schematic.annotation.ContentProvider;
 import net.simonvt.schematic.annotation.ContentUri;
 import net.simonvt.schematic.annotation.InexactContentUri;
+import net.simonvt.schematic.annotation.NotifyDelete;
+import net.simonvt.schematic.annotation.NotifyInsert;
 import net.simonvt.schematic.annotation.TableEndpoint;
 
 /**
@@ -46,6 +54,25 @@ public class QuoteProvider {
     )
     public static Uri withSymbol(String symbol){
       return buildUri(Path.QUOTES, symbol);
+    }
+
+    @NotifyInsert(paths = Path.QUOTES)
+    public static Uri[] notifyWhenInsert(){
+      updateAppWidgetData();
+      return new Uri[]{CONTENT_URI};
+    }
+    @NotifyDelete(paths = Path.QUOTES + "/*")
+    public static Uri[] notifyWhenDelete(){
+updateAppWidgetData();
+      return new Uri[]{withSymbol("*")};
+    }
+
+    private static void updateAppWidgetData(){
+      ComponentName cm = new ComponentName(TheApplication.getContext(), StockAppWidgetProvider.class);
+      AppWidgetManager appWidgetManager =AppWidgetManager.getInstance(TheApplication.getContext());
+      int[] appWidgetIds =appWidgetManager.getAppWidgetIds(cm);
+      appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.collection);
+
     }
   }
 

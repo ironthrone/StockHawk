@@ -9,6 +9,7 @@ import android.widget.RemoteViewsService;
 import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.data.QuoteColumns;
 import com.sam_chordas.android.stockhawk.data.QuoteProvider;
+import com.sam_chordas.android.stockhawk.ui.DetailActivity;
 
 public class StockWidgetService extends RemoteViewsService {
 
@@ -58,8 +59,10 @@ public class StockWidgetService extends RemoteViewsService {
         public RemoteViews getViewAt(int position) {
             mCursor.moveToPosition(position);
             RemoteViews rv = new RemoteViews(mContext.getPackageName(),R.layout.item_stock_app_widget);
-            rv.setTextViewText(R.id.symbol,mCursor.getString(mCursor.getColumnIndex(QuoteColumns.SYMBOL)));
-            rv.setTextViewText(R.id.bid_price,mCursor.getString(mCursor.getColumnIndex(QuoteColumns.BIDPRICE)));
+            String symbol = mCursor.getString(mCursor.getColumnIndex(QuoteColumns.SYMBOL));
+            rv.setTextViewText(R.id.symbol,symbol);
+            String bidPrice = mCursor.getString(mCursor.getColumnIndex(QuoteColumns.BIDPRICE));
+            rv.setTextViewText(R.id.bid_price,bidPrice);
             rv.setTextViewText(R.id.percent_changed,mCursor.getString(mCursor.getColumnIndex(QuoteColumns.PERCENT_CHANGE)));
             if(mCursor.getInt(mCursor.getColumnIndex(QuoteColumns.ISUP)) == 1){
                 rv.setInt(R.id.percent_changed,"setBackgroundColor",mContext.getResources().getColor(R.color.material_red_700));
@@ -67,6 +70,11 @@ public class StockWidgetService extends RemoteViewsService {
                 rv.setInt(R.id.percent_changed,"setBackgroundColor",mContext.getResources().getColor(R.color.material_green_700));
 
             }
+            Intent fillInIntent = new Intent();
+            fillInIntent.putExtra(DetailActivity.SYMBOL,symbol);
+            fillInIntent.putExtra(DetailActivity.BID_PRICE,bidPrice);
+
+            rv.setOnClickFillInIntent(R.id.stock_item,fillInIntent);
             return rv;
         }
 

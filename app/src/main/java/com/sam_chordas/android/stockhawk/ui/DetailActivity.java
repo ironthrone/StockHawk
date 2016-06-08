@@ -38,9 +38,11 @@ import butterknife.ButterKnife;
 public class DetailActivity extends Activity {
 
     public static final String SYMBOL = "symbol";
-    public static final String BIT_PRICE = "bitPrice";
+    public static final String BID_PRICE = "bitPrice";
     private String mSymbol;
+    private double mBitPrice;
     private OkHttpClient client = new OkHttpClient();
+
     @BindView(R.id.price_graph) LineGraph mLineGraph;
     @BindView(R.id.highest_price)
      TextView mHighest_TV;
@@ -53,7 +55,6 @@ public class DetailActivity extends Activity {
     @BindView(R.id.price_now)
      TextView mPriceNow_TV;
                             private SimpleDateFormat mFormat = new SimpleDateFormat("yyyy-MM-dd");
-    private double mBitPrice;
 
 
     @Override
@@ -71,7 +72,7 @@ public class DetailActivity extends Activity {
 
     private void initToolbar() {
         mSymbol = getIntent().getStringExtra(SYMBOL);
-        mBitPrice = getIntent().getDoubleExtra(BIT_PRICE,0);
+        mBitPrice = getIntent().getDoubleExtra(BID_PRICE,0);
         mSymbol_TV.setText(mSymbol);
         mPriceNow_TV.setText(mBitPrice + "");
     }
