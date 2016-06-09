@@ -12,8 +12,8 @@
 
         <LinearLayout
             android:orientation="horizontal"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <TextView
@@ -25,6 +25,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
             <TextView
+                android:layout_marginStart="16dp"
                 android:layout_marginLeft="16dp"
                 android:id="@+id/price_now"
                 style="@style/Title"
@@ -54,8 +55,8 @@
                 android:layout_height="wrap_content" />
             <GridLayout
                 android:columnCount="2"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
                 android:useDefaultMargins="true"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
