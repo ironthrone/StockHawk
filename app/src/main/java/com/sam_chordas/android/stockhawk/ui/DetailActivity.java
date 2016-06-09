@@ -74,7 +74,7 @@ public class DetailActivity extends Activity {
         mSymbol = getIntent().getStringExtra(SYMBOL);
         mBitPrice = getIntent().getDoubleExtra(BID_PRICE,0);
         mSymbol_TV.setText(mSymbol);
-        mPriceNow_TV.setText(mBitPrice + "");
+        mPriceNow_TV.setText(String.valueOf(mBitPrice));
     }
 
     private void getNetData() {
