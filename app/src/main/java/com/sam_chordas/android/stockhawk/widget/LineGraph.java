@@ -1,4 +1,4 @@
-package com.sam_chordas.android.stockhawk.ui;
+package com.sam_chordas.android.stockhawk.widget;
 
 import android.content.Context;
 import android.graphics.Canvas;

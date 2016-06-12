@@ -16,5 +16,7 @@
     <string name="highest">Highest:</string>
     <string name="lowest">Lowest:</string>
     <string name="average">Average:</string>
+    <string name="already_exit_toast">This stock is already saved!</string>
+    <string name="the_internet_is_not_available">The internet is not available!</string>
 
 </resources>

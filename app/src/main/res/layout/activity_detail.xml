@@ -34,7 +34,7 @@
                 android:layout_height="wrap_content" />
         </LinearLayout>
 
-        <com.sam_chordas.android.stockhawk.ui.LineGraph
+        <com.sam_chordas.android.stockhawk.widget.LineGraph
             android:id="@+id/price_graph"
             android:layout_marginTop="4dp"
             android:layout_marginBottom="4dp"

@@ -1,16 +1,13 @@
 package com.sam_chordas.android.stockhawk.ui;
 
 import android.app.Activity;
-import android.content.ContentValues;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sam_chordas.android.stockhawk.R;
-import com.sam_chordas.android.stockhawk.data.QuoteProvider;
-import com.sam_chordas.android.stockhawk.data.StockHistoryColumn;
+import com.sam_chordas.android.stockhawk.widget.LineGraph;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -21,9 +18,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -43,7 +37,8 @@ public class DetailActivity extends Activity {
     private double mBitPrice;
     private OkHttpClient client = new OkHttpClient();
 
-    @BindView(R.id.price_graph) LineGraph mLineGraph;
+    @BindView(R.id.price_graph)
+    LineGraph mLineGraph;
     @BindView(R.id.highest_price)
      TextView mHighest_TV;
     @BindView(R.id.lowest_price)
@@ -55,6 +50,8 @@ public class DetailActivity extends Activity {
     @BindView(R.id.price_now)
      TextView mPriceNow_TV;
                             private SimpleDateFormat mFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private double max;
+    private double min;
 
 
     @Override
@@ -78,29 +75,8 @@ public class DetailActivity extends Activity {
     }
 
     private void getNetData() {
-        String startDate;
-        Cursor cursor = getContentResolver().query(QuoteProvider.StockHistory.CONTENT_URI,
-                new String[]{StockHistoryColumn.DATE},
-                StockHistoryColumn.SYMBOL + " = ?",
-                new String[]{mSymbol},
-                StockHistoryColumn.DATE + " desc");
-        if(cursor != null && cursor.moveToFirst()){
-            long lastTime = cursor.getLong(cursor.getColumnIndex(StockHistoryColumn.DATE));
-            if(lastTime == getStartOfToday()){
-                startDate = "";
-            }else {
-                startDate = mFormat.format(new Date(lastTime));
-            }
-        cursor.close();
-
-        }else {
-            startDate = getStartTime();
-        }
-        if(startDate.equals("")){
-            return;
-        }
         Request request = new Request.Builder()
-                .url(buildUrl(mSymbol,startDate))
+                .url(buildUrl(mSymbol,7))
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
@@ -113,8 +89,7 @@ public class DetailActivity extends Activity {
                     Toast.makeText(DetailActivity.this, response.message(), Toast.LENGTH_SHORT).show();
                 return;
                 }
-                store(response.body().string());
-                showStock();
+                parse(response.body().string());
             }
         });
     }
@@ -129,74 +104,84 @@ public class DetailActivity extends Activity {
                 return calendar.getTime().getTime();
 
     }
-    /*
-    {
- "query": {
-  "count": 20,
-  "created": "2016-05-31T13:54:27Z",
-  "lang": "en-US",
-  "results": {
-   "quote": [
-    {
-     "Symbol": "YHOO",
-     "Date": "2016-05-27",
-     "Open": "36.880001",
-     "High": "37.880001",
-     "Low": "36.84",
-     "Close": "37.82",
-     "Volume": "14642500",
-     "Adj_Close": "37.82"
-    },
-     */
+//    finance_charts_json_callback( { "meta" :
+//        {
+//            "uri" :"/instrument/1.0/fb/chartdata;type=close;range=1m/json",
+//                "ticker" : "fb",
+//                "Company-Name" : "Facebook, Inc.",
+//                "Exchange-Name" : "NMS",
+//                "unit" : "DAY",
+//                "timestamp" : "",
+//                "first-trade" : "20120518",
+//                "last-trade" : "20160610",
+//                "currency" : "USD",
+//                "previous_close_price" : 120.2800
+//        }
+//        ,
+//        "Date" : {"min" :20160513,"max" :20160610 }
+//        ,
+//        "labels" : [20160513,20160516,20160523,20160531,20160606 ]
+//        ,
+//        "ranges" : {"close" : {"min" :115.9700,"max" :119.8100 } }
+//        ,
+//        "series" : [
+//        { "Date" :20160513,"close" :119.8100 }
+//        , { "Date" :20160516,"close" :118.6700 }
+//        , { "Date" :20160517,"close" :117.3500 }
+//        , { "Date" :20160518,"close" :117.6500 }
+//        , { "Date" :20160519,"close" :116.8100 }
+//        , { "Date" :20160520,"close" :117.3500 }
+//        , { "Date" :20160523,"close" :115.9700 }
+//        , { "Date" :20160524,"close" :117.7000 }
+//        , { "Date" :20160525,"close" :117.8900 }
+//        , { "Date" :20160526,"close" :119.4700 }
+//        , { "Date" :20160527,"close" :119.3800 }
+//        , { "Date" :20160531,"close" :118.8100 }
+//        , { "Date" :20160601,"close" :118.7800 }
+//        , { "Date" :20160602,"close" :118.9300 }
+//        , { "Date" :20160603,"close" :118.4700 }
+//        , { "Date" :20160606,"close" :118.7900 }
+//        , { "Date" :20160607,"close" :117.7600 }
+//        , { "Date" :20160608,"close" :118.3900 }
+//        , { "Date" :20160609,"close" :118.5600 }
+//        , { "Date" :20160610,"close" :116.6200 }
+//
+//        ]
+//    } )
 
-    private void store(String json){
+    private void parse(String result){
+            StringBuilder sb = new StringBuilder(result);
+        String begin = "finance_charts_json_callback( ";
+            sb.deleteCharAt(result.length() -1);
+            sb.delete(0,begin.length() - 1);
+        String json = sb.toString();
                     try {
                         JSONObject root_Json = new JSONObject(json);
 
-                        JSONArray query_Array = root_Json.getJSONObject("query").getJSONObject("results").getJSONArray("quote");
-                        List<ContentValues> cvs = new ArrayList<>();
-                        for (int i = 0; i < query_Array.length(); i++) {
-                            JSONObject object = query_Array.getJSONObject(i);
-                            ContentValues cv = new ContentValues();
-                            cv.put(StockHistoryColumn.SYMBOL,object.getString("Symbol"));
-                            long date = mFormat.parse(object.getString("Date")).getTime();
-                            cv.put(StockHistoryColumn.DATE,date);
-                            cv.put(StockHistoryColumn.OPEN,object.getString("Open"));
-                            cv.put(StockHistoryColumn.HIGH,object.getString("High"));
-                            cv.put(StockHistoryColumn.LOW,object.getString("Low"));
-                            cv.put(StockHistoryColumn.CLOSE,object.getString("Close"));
-                            cv.put(StockHistoryColumn.VOLUME,object.getString("Volume"));
-                            cv.put(StockHistoryColumn.ADJ_CLOSE,object.getString("Adj_Close"));
-                            cvs.add(cv);
+                        JSONArray jsonSeries = root_Json.getJSONArray("series");
+                        JSONObject jsonMinMax = root_Json.getJSONObject("ranges").getJSONObject("close");
+                        min = jsonMinMax.getDouble("min");
+                        max = jsonMinMax.getDouble("max");
+                            List<Double> mDatas = new ArrayList<>();
+                        for (int i = 0; i < jsonSeries.length(); i++) {
+                            JSONObject object = jsonSeries.getJSONObject(i);
+                            mDatas.add(object.getDouble("close"));
                         }
-                        getContentResolver().bulkInsert(QuoteProvider.StockHistory.CONTENT_URI,cvs.toArray(new ContentValues[]{}));
+                        showStock(mDatas);
                     } catch (JSONException e) {
-                        e.printStackTrace();
-                    } catch (ParseException e) {
                         e.printStackTrace();
                     }
 
     }
 
-    private void showStock(){
-        Cursor cursor = getContentResolver().query(QuoteProvider.StockHistory.CONTENT_URI,
-                new String[]{StockHistoryColumn.CLOSE,StockHistoryColumn.DATE},
-                StockHistoryColumn.SYMBOL + " = ?",
-                new String[]{mSymbol},
-                StockHistoryColumn.DATE + " asc");
-        if(cursor == null) return;
-        final List<Double> prices = new ArrayList<>();
-        while (cursor.moveToNext()){
-            prices.add(cursor.getDouble(cursor.getColumnIndex(StockHistoryColumn.CLOSE)));
-        }
-        cursor.close();
+    private void showStock(final List<Double> datas){
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-        mLineGraph.setDatas(prices);
-                mHighest_TV.setText(String.format("%.2f",getHighestPrice(prices)));
-                mLowest_TV.setText(String.format("%.2f",getLowestPrice(prices)));
-                mAverage_TV.setText(String.format("%.2f",getAveragePrice(prices)));
+        mLineGraph.setDatas(datas);
+                mHighest_TV.setText(String.format("%.2f",getHighestPrice(datas)));
+                mLowest_TV.setText(String.format("%.2f",getLowestPrice(datas)));
+                mAverage_TV.setText(String.format("%.2f",getAveragePrice(datas)));
 
             }
         });
@@ -222,18 +207,11 @@ public class DetailActivity extends Activity {
     }
 
     /*
-    https://query.yahooapis.com/v1/public/yql?
-    q=select%20*%20from%20yahoo.finance.historicaldata%20where%20symbol%20%3D%20%22YHOO%22%20and%20startDate%20%3D%20%222016-04-30%22%20and%20endDate%20%3D%20%222016-05-31%22&mFormat=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=
+    http://chartapi.finance.yahoo.com/instrument/1.0/fb/chartdata;type=close;range=7d/json
     */
-    private String buildUrl(String symbol,String startDate){
+    private String buildUrl(String symbol,int duration){
         StringBuilder sb = new StringBuilder();
-        try {
-            sb.append("https://query.yahooapis.com/v1/public/yql?q=");
-            sb .append(URLEncoder.encode("select * from yahoo.finance.historicaldata where symbol = \"" + symbol +"\" and startDate = \"" + startDate + "\" and endDate = \"" + formatDate(new Date()) + "\"","UTF-8"));
-            sb.append("&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+            sb.append("http://chartapi.finance.yahoo.com/instrument/1.0/" + symbol + "/chartdata;type=close;range=" + duration + "d/json");
         return sb.toString();
     }
 
