@@ -18,5 +18,9 @@
     <string name="average">Average:</string>
     <string name="already_exit_toast">This stock is already saved!</string>
     <string name="the_internet_is_not_available">The internet is not available!</string>
+    <string name="pref_period_default">7d</string>
+    <string name="pref_period_summary">for detail info about stock</string>
+    <string name="pref_period_title">Period</string>
+    <string name="pref_period_key">pref_period</string>
 
 </resources>

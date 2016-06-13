@@ -2,6 +2,7 @@ package com.sam_chordas.android.stockhawk.ui;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -76,7 +77,7 @@ public class DetailActivity extends Activity {
 
     private void getNetData() {
         Request request = new Request.Builder()
-                .url(buildUrl(mSymbol,7))
+                .url(buildUrl(mSymbol))
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
@@ -209,9 +210,11 @@ public class DetailActivity extends Activity {
     /*
     http://chartapi.finance.yahoo.com/instrument/1.0/fb/chartdata;type=close;range=7d/json
     */
-    private String buildUrl(String symbol,int duration){
+    private String buildUrl(String symbol){
+        String duration = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString(getString(R.string.pref_period_key),getString(R.string.pref_period_default));
+
         StringBuilder sb = new StringBuilder();
-            sb.append("http://chartapi.finance.yahoo.com/instrument/1.0/" + symbol + "/chartdata;type=close;range=" + duration + "d/json");
+            sb.append("http://chartapi.finance.yahoo.com/instrument/1.0/" + symbol + "/chartdata;type=close;range=" + duration + "/json");
         return sb.toString();
     }
 

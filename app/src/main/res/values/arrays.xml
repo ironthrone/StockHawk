@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="pref_period_values">
+        <item>1d</item>
+        <item>7d</item>
+        <item>1m</item>
+        <item>3m</item>
+        <item>12m</item>
+    </string-array>
+    <string-array name="pref_period_entries">
+        <item>1Day</item>
+        <item>1Week</item>
+        <item>1Month</item>
+        <item>3Month</item>
+        <item>1Year</item>
+    </string-array>
+</resources>
