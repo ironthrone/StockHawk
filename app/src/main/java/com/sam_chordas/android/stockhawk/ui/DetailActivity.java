@@ -1,8 +1,12 @@
 package com.sam_chordas.android.stockhawk.ui;
 
-import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,14 +34,17 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class DetailActivity extends Activity {
+public class DetailActivity extends AppCompatActivity {
 
     public static final String SYMBOL = "symbol";
     public static final String BID_PRICE = "bitPrice";
+    private static final String DATA = "data";
     private String mSymbol;
     private double mBitPrice;
     private OkHttpClient client = new OkHttpClient();
 
+    @BindView(R.id.toolbar)
+    Toolbar mToolbar;
     @BindView(R.id.price_graph)
     LineGraph mLineGraph;
     @BindView(R.id.highest_price)
@@ -50,31 +57,83 @@ public class DetailActivity extends Activity {
      TextView mSymbol_TV;
     @BindView(R.id.price_now)
      TextView mPriceNow_TV;
+    @BindView(R.id.period)
+    TextView mPeriod_TV;
+
                             private SimpleDateFormat mFormat = new SimpleDateFormat("yyyy-MM-dd");
     private double max;
     private double min;
+    private String duration;
+    private ArrayList<Double>  mDatas = new ArrayList<>();
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_detail);
 
         ButterKnife.bind(this);
 
 
         initToolbar();
+        duration = getDuration();
+        mPeriod_TV.setText(duration);
+        if(savedInstanceState == null){
+
         getNetData();
+        }else {
+            mDatas.addAll((ArrayList<Double>)savedInstanceState.get(DATA));
+            showStock(mDatas);
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(DATA,mDatas);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.global,menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.action_settings:
+                startActivity(new Intent(this,SettingActivity.class));
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void initToolbar() {
+        setSupportActionBar(mToolbar);
         mSymbol = getIntent().getStringExtra(SYMBOL);
         mBitPrice = getIntent().getDoubleExtra(BID_PRICE,0);
         mSymbol_TV.setText(mSymbol);
         mPriceNow_TV.setText(String.valueOf(mBitPrice));
+
     }
 
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if(!duration.equals(getDuration())){
+            getNetData();
+            duration = getDuration();
+            mPeriod_TV.setText(duration);
+        }
+    }
+
+    private String getDuration(){
+        return  PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString(getString(R.string.pref_period_key),getString(R.string.pref_period_default));
+    }
     private void getNetData() {
         Request request = new Request.Builder()
                 .url(buildUrl(mSymbol))
@@ -163,7 +222,6 @@ public class DetailActivity extends Activity {
                         JSONObject jsonMinMax = root_Json.getJSONObject("ranges").getJSONObject("close");
                         min = jsonMinMax.getDouble("min");
                         max = jsonMinMax.getDouble("max");
-                            List<Double> mDatas = new ArrayList<>();
                         for (int i = 0; i < jsonSeries.length(); i++) {
                             JSONObject object = jsonSeries.getJSONObject(i);
                             mDatas.add(object.getDouble("close"));
@@ -211,7 +269,6 @@ public class DetailActivity extends Activity {
     http://chartapi.finance.yahoo.com/instrument/1.0/fb/chartdata;type=close;range=7d/json
     */
     private String buildUrl(String symbol){
-        String duration = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString(getString(R.string.pref_period_key),getString(R.string.pref_period_default));
 
         StringBuilder sb = new StringBuilder();
             sb.append("http://chartapi.finance.yahoo.com/instrument/1.0/" + symbol + "/chartdata;type=close;range=" + duration + "/json");
