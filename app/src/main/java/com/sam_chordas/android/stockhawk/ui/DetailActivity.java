@@ -7,7 +7,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,22 +45,16 @@ public class DetailActivity extends AppCompatActivity {
     private double mBitPrice;
     private OkHttpClient client = new OkHttpClient();
 
-    @BindView(R.id.toolbar)
-    Toolbar mToolbar;
-    @BindView(R.id.price_graph)
-    LineGraph mLineGraph;
-    @BindView(R.id.highest_price)
-     TextView mHighest_TV;
-    @BindView(R.id.lowest_price)
-     TextView mLowest_TV;
-    @BindView(R.id.average_price)
-     TextView mAverage_TV;
-    @BindView(R.id.symbol)
-     TextView mSymbol_TV;
-    @BindView(R.id.price_now)
-     TextView mPriceNow_TV;
-    @BindView(R.id.period)
-    TextView mPeriod_TV;
+    @BindView(R.id.toolbar) Toolbar mToolbar;
+    @BindView(R.id.price_graph) LineGraph mLineGraph;
+    @BindView(R.id.highest_price) TextView mHighest_TV;
+    @BindView(R.id.lowest_price) TextView mLowest_TV;
+    @BindView(R.id.average_price) TextView mAverage_TV;
+    @BindView(R.id.symbol) TextView mSymbol_TV;
+    @BindView(R.id.price_now) TextView mPriceNow_TV;
+    @BindView(R.id.period) TextView mPeriod_TV;
+    @BindView(R.id.progress)
+    ProgressBar mProgressBar;
 
                             private SimpleDateFormat mFormat = new SimpleDateFormat("yyyy-MM-dd");
     private double max;
@@ -138,13 +134,28 @@ public class DetailActivity extends AppCompatActivity {
         Request request = new Request.Builder()
                 .url(buildUrl(mSymbol))
                 .build();
+        mProgressBar.setVisibility(View.VISIBLE);
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Request request, IOException e) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+        mProgressBar.setVisibility(View.INVISIBLE);
+
+                    }
+                });
             }
 
             @Override
             public void onResponse(Response response) throws IOException {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+        mProgressBar.setVisibility(View.INVISIBLE);
+                    }
+                });
                 if(!response.isSuccessful()) {
                     Toast.makeText(DetailActivity.this, response.message(), Toast.LENGTH_SHORT).show();
                 return;
@@ -237,6 +248,7 @@ public class DetailActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                if(datas.size() == 0) return;
         mLineGraph.setDatas(datas);
                 mHighest_TV.setText(String.format("%.2f",getHighestPrice(datas)));
                 mLowest_TV.setText(String.format("%.2f",getLowestPrice(datas)));
@@ -247,13 +259,15 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     private double getHighestPrice(List<Double> list){
-        Collections.sort(list,Collections.<Double>reverseOrder());
-        return list.get(0);
+        List<Double> temp = new ArrayList<>(list);
+        Collections.sort(temp,Collections.<Double>reverseOrder());
+        return temp.get(0);
     }
 
     private double getLowestPrice(List<Double> list){
-        Collections.sort(list);
-        return list.get(0);
+        List<Double> temp = new ArrayList<>(list);
+        Collections.sort(temp);
+        return temp.get(0);
     }
 
     private double getAveragePrice(List<Double> list){

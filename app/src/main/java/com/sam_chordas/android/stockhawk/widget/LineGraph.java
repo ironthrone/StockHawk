@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.support.design.BuildConfig;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
@@ -21,6 +22,7 @@ public class LineGraph extends View {
     private Paint mPaint;
         DecimalFormat mFormat = new DecimalFormat("#.00");
     private double leftWidth;
+private List<Double> mPoints = new ArrayList<>();
 
     public LineGraph(Context context) {
         super(context);
@@ -56,7 +58,6 @@ public class LineGraph extends View {
         canvas.drawLine(getWidth(),0,0,0,mPaint);
     }
 
-    private List<Double> mPoints = new ArrayList<>();
     private void drawLines(Canvas canvas) {
         mPaint.setColor(Color.BLUE);
         mPaint.setStrokeWidth(3);
@@ -73,7 +74,10 @@ public class LineGraph extends View {
     private float toX(int position){
          float result = getWidth()*position/POINT_NUM;
 
+        if(BuildConfig.DEBUG){
+
         System.out.println("x: " +  result);
+        }
         return result;
 
     }
@@ -84,7 +88,10 @@ public class LineGraph extends View {
     private float toY(double price){
         double part = getHeight()/(2* mDeviation);
         float result =  (float)( - (price - mMiddlePrice) * part + getHeight()/2);
+        if(BuildConfig.DEBUG){
         System.out.println("y: " + result);
+
+        }
         return result;
     }
 
