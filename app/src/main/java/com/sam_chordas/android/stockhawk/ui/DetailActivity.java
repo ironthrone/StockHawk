@@ -59,7 +59,7 @@ public class DetailActivity extends AppCompatActivity {
                             private SimpleDateFormat mFormat = new SimpleDateFormat("yyyy-MM-dd");
     private double max;
     private double min;
-    private String duration;
+    private String mDuration;
     private ArrayList<Double>  mDatas = new ArrayList<>();
 
 
@@ -74,8 +74,8 @@ public class DetailActivity extends AppCompatActivity {
 
 
         initToolbar();
-        duration = getDuration();
-        mPeriod_TV.setText(duration);
+        mDuration = getDuration();
+        mPeriod_TV.setText(mDuration);
         if(savedInstanceState == null){
 
         getNetData();
@@ -108,7 +108,16 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     private void initToolbar() {
+        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
         setSupportActionBar(mToolbar);
+//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+//        getSupportActionBar().setDisplayShowHomeEnabled(true);
         mSymbol = getIntent().getStringExtra(SYMBOL);
         mBitPrice = getIntent().getDoubleExtra(BID_PRICE,0);
         mSymbol_TV.setText(mSymbol);
@@ -117,13 +126,14 @@ public class DetailActivity extends AppCompatActivity {
     }
 
 
+
     @Override
     protected void onStart() {
         super.onStart();
-        if(!duration.equals(getDuration())){
+        if(!mDuration.equals(getDuration())){
+            mDuration = getDuration();
             getNetData();
-            duration = getDuration();
-            mPeriod_TV.setText(duration);
+            mPeriod_TV.setText(mDuration);
         }
     }
 
@@ -233,6 +243,7 @@ public class DetailActivity extends AppCompatActivity {
                         JSONObject jsonMinMax = root_Json.getJSONObject("ranges").getJSONObject("close");
                         min = jsonMinMax.getDouble("min");
                         max = jsonMinMax.getDouble("max");
+                        mDatas.clear();
                         for (int i = 0; i < jsonSeries.length(); i++) {
                             JSONObject object = jsonSeries.getJSONObject(i);
                             mDatas.add(object.getDouble("close"));
@@ -285,7 +296,7 @@ public class DetailActivity extends AppCompatActivity {
     private String buildUrl(String symbol){
 
         StringBuilder sb = new StringBuilder();
-            sb.append("http://chartapi.finance.yahoo.com/instrument/1.0/" + symbol + "/chartdata;type=close;range=" + duration + "/json");
+            sb.append("http://chartapi.finance.yahoo.com/instrument/1.0/" + symbol + "/chartdata;type=close;range=" + getDuration() + "/json");
         return sb.toString();
     }
 
