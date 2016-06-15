@@ -60,7 +60,8 @@
             android:name=".app_widget.StockWidgetService"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
 
-        <activity android:name=".ui.SettingActivity"></activity>
+        <activity android:name=".ui.SettingActivity"/>
+            <!--android:theme="@style/AppTheme.NoActionBar"/>-->
     </application>
 
 </manifest>
