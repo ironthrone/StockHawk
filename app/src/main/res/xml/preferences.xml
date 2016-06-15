@@ -6,5 +6,5 @@
         android:entries="@array/pref_period_entries"
         android:entryValues="@array/pref_period_values"
         android:defaultValue="@string/pref_period_default"
-        android:summary="@string/pref_period_summary"/>
+        android:summary="@string/pref_period_default"/>
 </PreferenceScreen>

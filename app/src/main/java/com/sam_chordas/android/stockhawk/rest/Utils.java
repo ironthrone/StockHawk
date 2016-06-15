@@ -1,8 +1,13 @@
 package com.sam_chordas.android.stockhawk.rest;
 
 import android.content.ContentProviderOperation;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.sam_chordas.android.stockhawk.R;
+import com.sam_chordas.android.stockhawk.TheApplication;
 import com.sam_chordas.android.stockhawk.data.QuoteColumns;
 import com.sam_chordas.android.stockhawk.data.QuoteProvider;
 
@@ -36,8 +41,15 @@ public class Utils {
               .getJSONObject("quote");
           String ask = jsonObject.getString("Ask");
           if(!ask.equals("null")){
-
           batchOperations.add(buildBatchOperation(jsonObject));
+          }else {
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+              @Override
+              public void run() {
+            Toast.makeText(TheApplication.getContext(), R.string.toast_no_such_stock, Toast.LENGTH_SHORT).show();
+              }
+            });
+
           }
         } else{
           resultsArray = jsonObject.getJSONObject("results").getJSONArray("quote");

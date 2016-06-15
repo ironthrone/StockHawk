@@ -65,14 +65,14 @@ public class StockWidgetService extends RemoteViewsService {
             rv.setTextViewText(R.id.bid_price,bidPrice);
             rv.setTextViewText(R.id.percent_changed,mCursor.getString(mCursor.getColumnIndex(QuoteColumns.PERCENT_CHANGE)));
             if(mCursor.getInt(mCursor.getColumnIndex(QuoteColumns.ISUP)) == 1){
-                rv.setInt(R.id.percent_changed,"setBackgroundColor",mContext.getResources().getColor(R.color.material_red_700));
-            }else {
                 rv.setInt(R.id.percent_changed,"setBackgroundColor",mContext.getResources().getColor(R.color.material_green_700));
+            }else {
+                rv.setInt(R.id.percent_changed,"setBackgroundColor",mContext.getResources().getColor(R.color.material_red_700));
 
             }
             Intent fillInIntent = new Intent();
+            fillInIntent.putExtra(DetailActivity.BID_PRICE,Double.parseDouble(bidPrice));
             fillInIntent.putExtra(DetailActivity.SYMBOL,symbol);
-            fillInIntent.putExtra(DetailActivity.BID_PRICE,bidPrice);
 
             rv.setOnClickFillInIntent(R.id.stock_item,fillInIntent);
             return rv;

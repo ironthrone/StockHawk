@@ -22,5 +22,6 @@
     <string name="pref_period_summary">for detail info about stock</string>
     <string name="pref_period_title">Period</string>
     <string name="pref_period_key">pref_period</string>
+    <string name="toast_no_such_stock">Can not find such stock!</string>
 
 </resources>
