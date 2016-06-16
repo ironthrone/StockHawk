@@ -3,6 +3,7 @@ package com.sam_chordas.android.stockhawk.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -55,7 +56,8 @@ public class DetailActivity extends AppCompatActivity {
     @BindView(R.id.period) TextView mPeriod_TV;
     @BindView(R.id.progress)
     ProgressBar mProgressBar;
-
+@BindView(R.id.collapsed_layout)
+    CollapsingToolbarLayout mCollapsingToolbar;
                             private SimpleDateFormat mFormat = new SimpleDateFormat("yyyy-MM-dd");
     private double max;
     private double min;
@@ -108,16 +110,9 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     private void initToolbar() {
-        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
-
         setSupportActionBar(mToolbar);
-//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-//        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        mCollapsingToolbar.setTitle(mToolbar.getTitle());
         mSymbol = getIntent().getStringExtra(SYMBOL);
         mBitPrice = getIntent().getDoubleExtra(BID_PRICE,0);
         mSymbol_TV.setText(mSymbol);

@@ -44,7 +44,11 @@
             android:authorities="com.sam_chordas.android.stockhawk.data.QuoteProvider"
             android:exported="true" />
 
-        <activity android:name=".ui.DetailActivity" />
+        <activity android:name=".ui.DetailActivity"
+            android:parentActivityName=".ui.MyStocksActivity">
+            <meta-data android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.MyStocksActivity"/>
+        </activity>
 
         <receiver android:name=".app_widget.StockAppWidgetProvider">
             <intent-filter>
